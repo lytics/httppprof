@@ -7,20 +7,13 @@
 // For more information about pprof, see
 // http://code.google.com/p/google-perftools/.
 //
-// The package is typically only imported for the side effect of
-// registering its HTTP handlers.
-// The handled paths all begin with /debug/pprof/.
+// Unlike net/http/pprof, this package does not register HTTP handlers on
+// import.
 //
-// To use pprof, link this package into your program:
-//	import _ "net/http/pprof"
+// To use pprof, pass a HTTP ServeMux to Register:
 //
-// If your application is not already running an http server, you
-// need to start one.  Add "net/http" and "log" to your imports and
-// the following code to your main function:
-//
-// 	go func() {
-// 		log.Println(http.ListenAndServe("localhost:6060", nil))
-// 	}()
+//	httppprof.Register(http.DefaultServeMux)
+//	log.Println(http.ListenAndServe("localhost:6060", nil))
 //
 // Then use the pprof tool to look at the heap profile:
 //
@@ -41,7 +34,7 @@
 //
 //	http://blog.golang.org/2011/06/profiling-go-programs.html
 //
-package pprof
+package httppprof
 
 import (
 	"bufio"
@@ -59,11 +52,11 @@ import (
 	"time"
 )
 
-func init() {
-	http.Handle("/debug/pprof/", http.HandlerFunc(Index))
-	http.Handle("/debug/pprof/cmdline", http.HandlerFunc(Cmdline))
-	http.Handle("/debug/pprof/profile", http.HandlerFunc(Profile))
-	http.Handle("/debug/pprof/symbol", http.HandlerFunc(Symbol))
+func Register(m *http.ServeMux) {
+	m.HandleFunc("/debug/pprof/", http.HandlerFunc(Index))
+	m.HandleFunc("/debug/pprof/cmdline", http.HandlerFunc(Cmdline))
+	m.HandleFunc("/debug/pprof/profile", http.HandlerFunc(Profile))
+	m.HandleFunc("/debug/pprof/symbol", http.HandlerFunc(Symbol))
 }
 
 // Cmdline responds with the running program's
